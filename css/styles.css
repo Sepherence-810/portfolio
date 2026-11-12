@@ -196,21 +196,6 @@ button { font: inherit; cursor: pointer; }
   outline-color: color-mix(in srgb, var(--accent-2) 80%, transparent); box-shadow: var(--shadow-lg);
 }
 
-/* Tabula ansata: an inscription tablet with dovetail handles */
-.badge {
-  position: relative; display: inline-flex; align-items: center; gap: 10px; margin: 0 14px; padding: 6px 16px;
-  background: color-mix(in srgb, var(--surface) var(--surface-alpha), transparent);
-  border-top: 1px solid var(--accent-2); border-bottom: 1px solid var(--accent-2);
-  font-family: var(--font-caps); font-weight: 600; font-size: 0.74rem; letter-spacing: 0.14em; color: var(--text-muted);
-}
-.badge::before, .badge::after {
-  content: ""; position: absolute; top: -1px; bottom: -1px; width: 14px; background: var(--accent-2);
-}
-.badge::before { right: 100%; clip-path: polygon(100% 0, 0 50%, 100% 100%, calc(100% - 1px) 100%, 1.5px 50%, calc(100% - 1px) 0); }
-.badge::after { left: 100%; clip-path: polygon(0 0, 100% 50%, 0 100%, 1px 100%, calc(100% - 1.5px) 50%, 1px 0); }
-.badge .dot { width: 7px; height: 7px; transform: rotate(45deg); background: var(--success); animation: pulse 2.4s ease-in-out infinite; }
-@keyframes pulse { 50% { opacity: 0.35; } }
-
 /* =========================================================
    Navbar
    ========================================================= */
@@ -487,9 +472,6 @@ button { font: inherit; cursor: pointer; }
 }
 .carousel__dot:hover::before { background: color-mix(in srgb, var(--accent-2) 45%, transparent); }
 .carousel__dot[aria-current="true"]::before { background: var(--accent); border-color: var(--accent); transform: rotate(45deg) scale(1.35); }
-.carousel__play { width: 34px; height: 34px; margin-left: 4px; color: var(--text-muted); }
-.carousel__play .icon-play, .carousel__play.is-paused .icon-pause { display: none; }
-.carousel__play.is-paused .icon-play { display: block; }
 
 .cert { display: flex; flex-direction: column; overflow: hidden; text-align: left; padding: 8px; color: inherit; width: 100%; }
 .cert__media { aspect-ratio: 1.414 / 1; background: var(--surface-2); overflow: hidden; display: grid; place-items: center; border: 1px solid var(--border); }

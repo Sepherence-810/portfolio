@@ -18,14 +18,13 @@ window.PORTFOLIO_DATA = {
     location: "Malolos, Bulacan, Philippines",
     email: "josephlawrencesatos2004@gmail.com",
     phone: "09499315401",
-    avatar_url: "",
+    avatar_url: "assets/profile.png",
     resume_url: "assets/Joseph_Lawrence_Santos_Resume.pdf",
     facebook: "https://www.facebook.com/josephlawrence.santos.3",
     github: "",
     linkedin: "",
     twitter: "",
     website: "",
-    available: true,
   },
   projects: [
     {

@@ -109,7 +109,6 @@
     $("#footerName").textContent = shortName;
     $("#heroName").textContent = name;
     $("#heroTagline").textContent = p.tagline || "";
-    $("#availability").hidden = !p.available;
 
     const avatar = safeUrl(p.avatar_url);
     $("#heroAvatar").innerHTML = avatar
@@ -255,7 +254,6 @@
     const track = $("#certificatesTrack");
     const dots = $("#certDots");
     const count = $("#certCount");
-    const playBtn = $("#certPlay");
     const total = certs.length;
 
     track.innerHTML = certs
@@ -372,21 +370,11 @@
       clearInterval(timer);
       if (canPlay()) timer = setInterval(() => canPlay() && goTo(current + 1), DELAY);
     }
-    function syncPlayBtn() {
-      playBtn.classList.toggle("is-paused", userPaused);
-      playBtn.setAttribute("aria-pressed", String(userPaused));
-      playBtn.setAttribute("aria-label", userPaused ? "Play slideshow" : "Pause slideshow");
-    }
-    playBtn.addEventListener("click", () => {
-      userPaused = !userPaused;
-      syncPlayBtn();
-      restart();
-    });
     carousel.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") { hovering = true; restart(); } });
     carousel.addEventListener("pointerleave", () => { hovering = false; restart(); });
     carousel.addEventListener("focusin", () => { focused = true; restart(); });
     carousel.addEventListener("focusout", (e) => { if (!carousel.contains(e.relatedTarget)) { focused = false; restart(); } });
-    track.addEventListener("touchstart", () => { userPaused = true; syncPlayBtn(); restart(); }, { passive: true });
+    track.addEventListener("touchstart", () => { userPaused = true; restart(); }, { passive: true });
     document.addEventListener("visibilitychange", restart);
     const loadAll = () => $$("img", track).forEach((im) => (im.loading = "eager"));
     if ("IntersectionObserver" in window) {
@@ -399,7 +387,6 @@
     // Re-centre after layout changes (resize, font load)
     window.addEventListener("resize", () => current >= 0 && goTo(current, false));
     setActive(0);
-    syncPlayBtn();
     requestAnimationFrame(() => goTo(0, false));
 
     /* --- viewer --- */
