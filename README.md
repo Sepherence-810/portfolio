@@ -2,9 +2,9 @@
 
 A personal portfolio site built with plain HTML, CSS and JavaScript. It has no backend, no build step and no dependencies to install.
 
-**Sections:** Hero, About, Skills (filterable), Projects, Leadership (timeline), Education, Certificates (click to view and verify), Contact.
+**Sections:** Hero, About, Skills (filterable), Projects, Leadership (timeline), Education, Certificates (carousel; click to view and verify), Contact.
 
-**Features:** dark and light mode, scroll-reveal animations, typing effect, scroll progress bar, active-section nav, mobile menu, certificate viewer, back-to-top button, toast notifications, reduced-motion support, and SEO and security headers.
+**Features:** dark and light mode, scroll-reveal animations, typing effect, scroll progress bar, active-section nav, mobile menu, certificate carousel and viewer, back-to-top button, toast notifications, reduced-motion support, and SEO and security headers.
 
 ```
 ├── index.html       The page

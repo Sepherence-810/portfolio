@@ -51,6 +51,7 @@
     external: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14 21 3"/>',
     code: '<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>',
     calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    facebook: '<path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>',
   };
   const icon = (name, size = 20) =>
     `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ""}</svg>`;
@@ -82,6 +83,7 @@
   /* ---------------- renderers ---------------- */
   function socialLinks(p) {
     const items = [
+      ["facebook", p.facebook, "Facebook"],
       ["github", p.github, "GitHub"],
       ["linkedin", p.linkedin, "LinkedIn"],
       ["twitter", p.twitter, "X / Twitter"],
@@ -125,11 +127,6 @@
     $("#heroSocials").innerHTML = socials;
     $("#footerSocials").innerHTML = socials;
 
-    const stats = Array.isArray(p.stats) ? p.stats : [];
-    $("#heroStats").innerHTML = stats
-      .map((s) => `<li class="reveal"><strong class="gradient-text">${esc(s.value)}</strong><span>${esc(s.label)}</span></li>`)
-      .join("");
-
     $("#aboutBio").textContent = p.bio || "";
 
     const facts = [
@@ -145,34 +142,10 @@
     const contacts = [];
     if (p.email) contacts.push(`<li><a href="mailto:${esc(p.email)}">${icon("mail")}${esc(p.email)}</a></li>`);
     if (p.phone) contacts.push(`<li><a href="tel:${esc(String(p.phone).replace(/[^\d+]/g, ""))}">${icon("phone")}${esc(p.phone)}</a></li>`);
+    const fb = safeUrl(p.facebook);
+    if (fb) contacts.push(`<li><a href="${esc(fb)}" target="_blank" rel="noopener">${icon("facebook")}Facebook</a></li>`);
     if (p.location) contacts.push(`<li><span>${icon("location")}${esc(p.location)}</span></li>`);
     $("#contactList").innerHTML = contacts.join("");
-
-    const roles = asArray(p.roles).length ? asArray(p.roles) : [p.role || ""];
-    startTyping(roles);
-  }
-
-  function startTyping(roles) {
-    const el = $("#typedRole");
-    if (reduceMotion || roles.length < 2) {
-      el.textContent = roles[0] || "";
-      return;
-    }
-    let i = 0, j = 0, deleting = false;
-    (function tick() {
-      const word = roles[i];
-      el.textContent = word.slice(0, j);
-      if (!deleting && j === word.length) {
-        deleting = true;
-        return setTimeout(tick, 1600);
-      }
-      if (deleting && j === 0) {
-        deleting = false;
-        i = (i + 1) % roles.length;
-      }
-      j += deleting ? -1 : 1;
-      setTimeout(tick, deleting ? 40 : 85);
-    })();
   }
 
   function renderSkills(skills) {
@@ -277,34 +250,178 @@
 
   function renderCertificates(certs) {
     toggleSection("certificates", certs.length > 0);
-    const grid = $("#certificatesGrid");
-    grid.innerHTML = certs
+    if (!certs.length) return;
+    const carousel = $("#certCarousel");
+    const track = $("#certificatesTrack");
+    const dots = $("#certDots");
+    const count = $("#certCount");
+    const playBtn = $("#certPlay");
+    const total = certs.length;
+
+    track.innerHTML = certs
       .map((c, i) => {
         const img = safeUrl(c.image_url);
-        return `<button type="button" class="card card--hover cert reveal" data-index="${i}" aria-label="View certificate: ${esc(c.title)}">
-          <div class="cert__media">
-            ${img ? `<img src="${esc(img)}" alt="" loading="lazy" />` : `<div class="cert__placeholder">${icon("award", 56)}</div>`}
-          </div>
-          <div class="cert__body">
-            <h3>${esc(c.title)}</h3>
-            ${c.issuer ? `<span class="cert__issuer">${esc(c.issuer)}</span>` : ""}
-            ${c.issue_date ? `<span class="cert__date">Issued ${esc(c.issue_date)}</span>` : ""}
-          </div>
-        </button>`;
+        const meta = [c.issuer, c.issue_date].filter(Boolean).map(esc).join(" · ");
+        return `<li class="carousel__slide" aria-roledescription="slide" aria-label="${i + 1} of ${total}">
+          <button type="button" class="card cert" data-index="${i}" aria-label="View certificate: ${esc(c.title)}">
+            <div class="cert__media">
+              ${img ? `<img src="${esc(img)}" alt="" loading="lazy" decoding="async" />` : `<div class="cert__placeholder">${icon("award", 56)}</div>`}
+            </div>
+            <div class="cert__body">
+              ${c.kind ? `<span class="cert__kind">${esc(c.kind)}</span>` : ""}
+              <h3>${esc(c.title)}</h3>
+              ${meta ? `<span class="cert__date">${meta}</span>` : ""}
+            </div>
+          </button>
+        </li>`;
       })
       .join("");
+    dots.innerHTML = certs
+      .map((c, i) => `<button type="button" class="carousel__dot" data-go="${i}" aria-label="Show certificate ${i + 1}: ${esc(c.title)}"></button>`)
+      .join("");
 
+    const slides = $$(".carousel__slide", track);
+    const dotBtns = $$(".carousel__dot", dots);
+    let current = -1;
+
+    function setActive(i) {
+      if (i === current) return;
+      current = i;
+      slides.forEach((s, k) => {
+        const on = k === i;
+        s.classList.toggle("is-active", on);
+        // Only the centred certificate is tabbable; arrows and dots reach the rest
+        $(".cert", s).tabIndex = on ? 0 : -1;
+        s.setAttribute("aria-hidden", on ? "false" : "true");
+      });
+      dotBtns.forEach((d, k) => d.setAttribute("aria-current", k === i ? "true" : "false"));
+      // Load the current slide and its neighbours so they're ready before they slide in
+      [i - 1, i, i + 1].forEach((k) => {
+        const im = $("img", slides[(k + total) % total]);
+        if (im) im.loading = "eager";
+      });
+      count.textContent = `${toRoman(i + 1)} / ${toRoman(total)}`;
+      count.title = `${i + 1} of ${total}`;
+    }
+
+    // While we scroll programmatically, don't let scroll-sync flick through the slides in between
+    let steering = false, steerTimer = 0;
+    const release = () => { steering = false; clearTimeout(steerTimer); };
+    track.addEventListener("scrollend", release);
+
+    function goTo(i, smooth = true) {
+      const idx = (i + total) % total;
+      const s = slides[idx];
+      steering = true;
+      clearTimeout(steerTimer);
+      steerTimer = setTimeout(release, 900);
+      track.scrollTo({
+        left: s.offsetLeft - (track.clientWidth - s.offsetWidth) / 2,
+        behavior: smooth && !reduceMotion ? "smooth" : "auto",
+      });
+      setActive(idx);
+    }
+
+    // Keep the active slide in sync with swipes / trackpad scrolling
+    let raf = 0;
+    track.addEventListener(
+      "scroll",
+      () => {
+        if (steering) return;
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          const mid = track.scrollLeft + track.clientWidth / 2;
+          let best = 0, bestDist = Infinity;
+          slides.forEach((s, k) => {
+            const d = Math.abs(s.offsetLeft + s.offsetWidth / 2 - mid);
+            if (d < bestDist) { bestDist = d; best = k; }
+          });
+          setActive(best);
+        });
+      },
+      { passive: true }
+    );
+
+    $$(".carousel__btn", carousel).forEach((b) =>
+      b.addEventListener("click", () => {
+        goTo(current + Number(b.dataset.dir));
+        restart();
+      })
+    );
+    dots.addEventListener("click", (e) => {
+      const d = e.target.closest("[data-go]");
+      if (!d) return;
+      goTo(Number(d.dataset.go));
+      restart();
+    });
+    carousel.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+      if (e.target.closest("input, textarea")) return;
+      e.preventDefault();
+      goTo(current + (e.key === "ArrowRight" ? 1 : -1));
+      const btn = $(".cert", slides[current]);
+      if (track.contains(document.activeElement)) btn.focus({ preventScroll: true });
+      restart();
+    });
+
+    /* --- autoplay: pauses on hover/focus, off-screen, hidden tab, or by the user --- */
+    const DELAY = 5500;
+    let timer = 0, userPaused = reduceMotion, hovering = false, focused = false, inView = false;
+    const canPlay = () => !userPaused && !hovering && !focused && inView && !document.hidden && !$("#certModal").open;
+    function restart() {
+      clearInterval(timer);
+      if (canPlay()) timer = setInterval(() => canPlay() && goTo(current + 1), DELAY);
+    }
+    function syncPlayBtn() {
+      playBtn.classList.toggle("is-paused", userPaused);
+      playBtn.setAttribute("aria-pressed", String(userPaused));
+      playBtn.setAttribute("aria-label", userPaused ? "Play slideshow" : "Pause slideshow");
+    }
+    playBtn.addEventListener("click", () => {
+      userPaused = !userPaused;
+      syncPlayBtn();
+      restart();
+    });
+    carousel.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") { hovering = true; restart(); } });
+    carousel.addEventListener("pointerleave", () => { hovering = false; restart(); });
+    carousel.addEventListener("focusin", () => { focused = true; restart(); });
+    carousel.addEventListener("focusout", (e) => { if (!carousel.contains(e.relatedTarget)) { focused = false; restart(); } });
+    track.addEventListener("touchstart", () => { userPaused = true; syncPlayBtn(); restart(); }, { passive: true });
+    document.addEventListener("visibilitychange", restart);
+    const loadAll = () => $$("img", track).forEach((im) => (im.loading = "eager"));
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver((en) => { inView = en[0].isIntersecting; restart(); }, { threshold: 0.35 }).observe(carousel);
+      // Fetch every certificate image once the visitor is getting close, so slides never arrive blank
+      const near = new IntersectionObserver((en) => { if (en[0].isIntersecting) { loadAll(); near.disconnect(); } }, { rootMargin: "800px 0px" });
+      near.observe(carousel);
+    } else { inView = true; loadAll(); }
+
+    // Re-centre after layout changes (resize, font load)
+    window.addEventListener("resize", () => current >= 0 && goTo(current, false));
+    setActive(0);
+    syncPlayBtn();
+    requestAnimationFrame(() => goTo(0, false));
+
+    /* --- viewer --- */
     const modal = $("#certModal");
-    grid.onclick = (e) => {
+    track.onclick = (e) => {
       const card = e.target.closest(".cert");
       if (!card) return;
-      const c = certs[Number(card.dataset.index)];
+      const i = Number(card.dataset.index);
+      // Clicking a peeking neighbour brings it to the centre instead of opening it
+      if (i !== current) {
+        goTo(i);
+        restart();
+        return;
+      }
+      const c = certs[i];
       const img = safeUrl(c.image_url);
       const verify = safeUrl(c.credential_url);
       $("#certModalContent").innerHTML = `
         ${img ? `<img class="modal__img" src="${esc(img)}" alt="Certificate: ${esc(c.title)}" />` : ""}
-        <p class="eyebrow">Certificate</p>
+        <p class="eyebrow">${esc(c.kind || "Certificate")}</p>
         <h3 id="certModalTitle" style="font-size:1.4rem;padding-right:40px">${esc(c.title)}</h3>
+        ${c.description ? `<p class="muted">${esc(c.description)}</p>` : ""}
         <dl>
           ${c.issuer ? `<dt>Issued by</dt><dd>${esc(c.issuer)}</dd>` : ""}
           ${c.issue_date ? `<dt>Issued</dt><dd>${esc(c.issue_date)}</dd>` : ""}
@@ -313,11 +430,13 @@
         ${verify ? `<a class="btn btn--primary" href="${esc(verify)}" target="_blank" rel="noopener">${icon("external", 16)} Verify credential</a>` : ""}`;
       if (typeof modal.showModal === "function") modal.showModal();
       else modal.setAttribute("open", "");
+      restart();
     };
     modal.addEventListener("click", (e) => {
       // close on backdrop click or close button
       if (e.target === modal || e.target.closest("[data-close]")) modal.close();
     });
+    modal.addEventListener("close", restart);
   }
 
   /* ---------------- reveal on scroll ---------------- */

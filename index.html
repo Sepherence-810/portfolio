@@ -70,7 +70,6 @@
         <div class="hero__text">
           <p class="badge" id="availability" hidden><span class="dot"></span> Open to opportunities</p>
           <h1 class="hero__title">Hi, I'm <span class="gradient-text" id="heroName"><span class="skeleton skeleton--inline"></span></span></h1>
-          <p class="hero__role"><span id="typedRole"></span><span class="caret" aria-hidden="true"></span></p>
           <p class="hero__tagline" id="heroTagline"><span class="skeleton skeleton--line"></span></p>
           <div class="hero__cta">
             <a href="#projects" class="btn btn--primary">View my projects</a>
@@ -146,9 +145,6 @@
           <div class="avatar" id="heroAvatar"><span class="skeleton skeleton--circle"></span></div>
         </div>
       </div>
-      <div class="container">
-        <ul class="stats" id="heroStats"></ul>
-      </div>
     </section>
 
     <!-- ===== About ===== -->
@@ -217,7 +213,25 @@
           <p class="eyebrow">Certificates</p>
           <h2>Licenses &amp; certifications</h2>
         </div>
-        <div class="certs" id="certificatesGrid"></div>
+        <div class="carousel reveal" id="certCarousel" role="region" aria-roledescription="carousel" aria-label="Certificates">
+          <div class="carousel__viewport">
+            <ul class="carousel__track" id="certificatesTrack"></ul>
+          </div>
+          <div class="carousel__controls">
+            <span class="carousel__count" id="certCount" aria-live="polite"></span>
+            <button class="icon-btn carousel__btn" type="button" data-dir="-1" aria-label="Previous certificate">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="carousel__dots" id="certDots"></div>
+            <button class="icon-btn carousel__btn" type="button" data-dir="1" aria-label="Next certificate">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+            <button class="icon-btn carousel__play" type="button" id="certPlay" aria-label="Pause slideshow" aria-pressed="false">
+              <svg class="icon-pause" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+              <svg class="icon-play" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M7 5v14l12-7z"/></svg>
+            </button>
+          </div>
+        </div>
       </div>
     </section>
 
